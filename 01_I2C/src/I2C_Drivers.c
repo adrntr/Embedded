@@ -114,7 +114,14 @@ void I2C_EV_IRQHandler(I2C_HandlerIT *i2cHandlerIT){
 	}
 
 	/*TxE is set*/
-	if()
+	if(I2C_IT_TXE & sr){
+		i2cHandlerIT->I2Cx->DR = i2cHandlerIT->dataToSend[0];
+		i2cHandlerIT->msgSize -= 1;
+		/*Si ultimo byte enviado --> STOP Condition*/
+		if(i2cHandlerIT->msgSize <= 0){
+			i2cHandlerIT->I2Cx->CR1 |= I2C_CR1_STOP;
+		}
+	}
 
 
 	/*CHECK IF RxNE and BUSY are SET*/
