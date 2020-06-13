@@ -1,0 +1,35 @@
+#include "stm32f4xx.h"
+#include <stdio.h>
+#include <string.h>
+
+#define SENDER
+//#define RECEIVER
+
+
+#define STOP 1
+
+uint8_t ownAddress;
+uint8_t device2Address;
+
+
+typedef struct
+{
+	char dataReceived[32];          /*!< Where to save the I2C data */
+
+	uint32_t bytesReceived; 		/*!< Number of bytes received at the moment */
+
+}I2C_HandlerIT;
+
+
+void I2C_Send1byte();
+void I2C_Receive1byte();
+void I2C_Send1char(char *msg);
+void I2C_EnableIT();
+
+void I2C_EV_IRQHandler(I2C_HandlerIT *i2cHandlerIT);
+
+void I2C_EventCallBack(uint8_t event);
+
+
+
+
