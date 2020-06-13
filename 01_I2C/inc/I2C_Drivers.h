@@ -14,11 +14,17 @@ uint8_t device2Address;
 
 typedef struct
 {
-	char dataReceived[32];          /*!< Where to save the I2C data */
+	I2C_TypeDef* I2Cx;
+	uint8_t receiverAddress;
+	uint8_t writeRead;
+	char dataToSend[32];
+	uint32_t msgSize;
 
+	char dataReceived[32];          /*!< Where to save the I2C data */
 	uint32_t bytesReceived; 		/*!< Number of bytes received at the moment */
 
 }I2C_HandlerIT;
+
 
 
 void I2C_Send1byte();

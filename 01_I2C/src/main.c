@@ -22,10 +22,6 @@
 #define SCL_PinSource GPIO_PinSource8
 
 
-
-
-
-
 RCC_ClocksTypeDef RCC_Clock;
 USART_InitTypeDef USART_InitStruct;
 GPIO_InitTypeDef GPIO_InitStruct;
@@ -174,7 +170,7 @@ void GPIOS_Config(){
 }
 
 /***********************************************************************************************
-								GPIO CONFIG
+								GPIO IRQ CONFIG
 ***********************************************************************************************/
 
 void GPIOS_IRQConfig(){

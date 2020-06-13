@@ -79,6 +79,16 @@ void I2C_Send1byte(){
 }
 
 /***********************************************************************************************
+								I2C1_SEND_IT_MSG
+***********************************************************************************************/
+
+void I2C_SendITMsg(I2C_HandlerSendIT *HandlerSendIT){
+
+
+
+}
+
+/***********************************************************************************************
 								I2C1_EV_IRQHANDLER
 ***********************************************************************************************/
 
@@ -90,7 +100,15 @@ void I2C_EV_IRQHandler(I2C_HandlerIT *i2cHandlerIT){
 	sr2 = I2C1->SR2;
 	sr=sr1|(sr2<<16);
 
+	/*Start bit on*/
+	if(I2C_IT_SB & sr){
+		uint32_t dummyRead = I2C1->SR2;
+		(void)dummyRead;
 
+
+	}
+
+	/*Addres matched*/
 	if(I2C_EVENT_SLAVE_RECEIVER_ADDRESS_MATCHED & sr){
 		uint32_t dummyRead = I2C1->SR2;
 		(void)dummyRead;
@@ -104,6 +122,7 @@ void I2C_EV_IRQHandler(I2C_HandlerIT *i2cHandlerIT){
 		i2cHandlerIT->bytesReceived ++;
 	}
 
+	/*STOP detected*/
 	if(I2C_EVENT_SLAVE_STOP_DETECTED & sr){
 		uint32_t dummyread = I2C1->SR1;
 		(void)dummyread;
