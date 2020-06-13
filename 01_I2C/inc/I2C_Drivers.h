@@ -6,6 +6,10 @@
 //#define RECEIVER
 
 
+/*@I2C_MODE*/
+#define MODE_MASTER 0
+#define MODE_SLAVE 	1
+
 #define STOP 1
 
 uint8_t ownAddress;
@@ -19,9 +23,10 @@ typedef struct
 	uint8_t writeRead;
 	char dataToSend[32];
 	uint32_t msgSize;
-
 	char dataReceived[32];          /*!< Where to save the I2C data */
 	uint32_t bytesReceived; 		/*!< Number of bytes received at the moment */
+
+	uint8_t mode; 					/*@I2C_MODE*/
 
 }I2C_HandlerIT;
 

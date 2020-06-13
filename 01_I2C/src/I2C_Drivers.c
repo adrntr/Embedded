@@ -78,15 +78,6 @@ void I2C_Send1byte(){
 
 }
 
-/***********************************************************************************************
-								I2C1_SEND_IT_MSG
-***********************************************************************************************/
-
-void I2C_SendITMsg(I2C_HandlerSendIT *HandlerSendIT){
-
-
-
-}
 
 /***********************************************************************************************
 								I2C1_EV_IRQHANDLER
@@ -105,15 +96,25 @@ void I2C_EV_IRQHandler(I2C_HandlerIT *i2cHandlerIT){
 		uint32_t dummyRead = I2C1->SR2;
 		(void)dummyRead;
 
-
+		uint8_t AddressAndType=((i2cHandlerIT->receiverAddress<<1)|(i2cHandlerIT->writeRead));
+		i2cHandlerIT->I2Cx->DR = AddressAndType;
 	}
+
+
 
 	/*Addres matched*/
 	if(I2C_EVENT_SLAVE_RECEIVER_ADDRESS_MATCHED & sr){
 		uint32_t dummyRead = I2C1->SR2;
 		(void)dummyRead;
 
+		if(i2cHandlerIT->mode == MODE_MASTER){
+			i2cHandlerIT->I2Cx->DR = i2cHandlerIT->dataToSend[0];
+			i2cHandlerIT->msgSize -= 1;
+		}
 	}
+
+	/*TxE is set*/
+	if()
 
 
 	/*CHECK IF RxNE and BUSY are SET*/
