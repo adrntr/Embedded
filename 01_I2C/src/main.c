@@ -46,6 +46,7 @@ void printmsg(char *msg);
 void GPIOS_Config();
 void I2C_Config();
 void I2C_IRQConfig();
+void I2C_HandlerConfig();
 void GPIOS_IRQConfig();
 void delay(uint32_t delayms);
 
@@ -86,7 +87,9 @@ int main(void){
 
 	I2C_Config();
 
+	I2C_HandlerConfig();
 	I2C_IRQConfig();
+
 
 	while(1){
 
@@ -108,6 +111,8 @@ void I2C_EventCallBack(uint8_t event){
 
 		memset(i2cHandler.dataReceived,0,sizeof(i2cHandler.dataReceived));
 		i2cHandler.bytesReceived = 0;
+		i2cHandler.bytesSent = 0;
+		i2cHandler.mode = MODE_SLAVE;
 		break;
 
 	}
@@ -202,6 +207,8 @@ void GPIOS_IRQConfig(){
 ***********************************************************************************************/
 void Uart_Config(){
 
+	char buffer[50];
+
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 
@@ -230,6 +237,9 @@ void Uart_Config(){
 
 	USART_Cmd(USART2, ENABLE);
 
+
+	sprintf(buffer,"Direccion propia: %x\n\r",ownAddress & 0xff);
+	printmsg(buffer);
 	printmsg("UART CONFIGURED \r\n");
 }
 
@@ -312,6 +322,23 @@ void I2C_Config(){
 }
 
 /***********************************************************************************************
+								I2C HANDLER CONFIG
+***********************************************************************************************/
+
+void I2C_HandlerConfig(){
+
+	i2cHandler.I2Cx = I2C1;
+	strcpy(i2cHandler.dataToSend,"Xq\r\n");
+	i2cHandler.bytesSent = 0;
+	i2cHandler.mode = MODE_SLAVE;
+	i2cHandler.msgSize = strlen(i2cHandler.dataToSend);
+	i2cHandler.receiverAddress = device2Address;
+	i2cHandler.writeRead = I2C_TXMODE_WRITE;
+
+
+}
+
+/***********************************************************************************************
 								I2C IRQ CONFIG
 ***********************************************************************************************/
 
@@ -384,8 +411,10 @@ void EXTI15_10_IRQHandler(){
 	GPIO_ToggleBits(GPIOA,GPIO_Pin_5);
 	EXTI_ClearITPendingBit(EXTI_Line13);
 	if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_13)==0){
-		printmsg("Sending");
-		I2C_Send1char("hola caraculo puto\r\n");
+		printmsg("Sending\r\n");
+		i2cHandler.mode = MODE_MASTER;
+		I2C_Send1char("ho\r\n"); //polling mode
+		//I2C1->CR1 |= I2C_CR1_START;
 	}
 
 

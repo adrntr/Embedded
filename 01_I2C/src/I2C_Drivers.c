@@ -91,20 +91,22 @@ void I2C_EV_IRQHandler(I2C_HandlerIT *i2cHandlerIT){
 	sr2 = I2C1->SR2;
 	sr=sr1|(sr2<<16);
 
-	/*Start bit on*/
+	/*Start bit on --> Send Address + write/read*/
 	if(I2C_IT_SB & sr){
 		uint32_t dummyRead = I2C1->SR2;
 		(void)dummyRead;
 
 		uint8_t AddressAndType=((i2cHandlerIT->receiverAddress<<1)|(i2cHandlerIT->writeRead));
 		i2cHandlerIT->I2Cx->DR = AddressAndType;
+
 	}
 
 
 
 	/*Addres matched*/
-	if(I2C_EVENT_SLAVE_RECEIVER_ADDRESS_MATCHED & sr){
-		uint32_t dummyRead = I2C1->SR2;
+	if(I2C_IT_ADDR & sr){
+		uint32_t dummyRead = I2C1->SR1;
+		dummyRead = I2C1->SR2;
 		(void)dummyRead;
 
 		if(i2cHandlerIT->mode == MODE_MASTER){
@@ -115,8 +117,10 @@ void I2C_EV_IRQHandler(I2C_HandlerIT *i2cHandlerIT){
 
 	/*TxE is set*/
 	if(I2C_IT_TXE & sr){
-		i2cHandlerIT->I2Cx->DR = i2cHandlerIT->dataToSend[0];
+		i2cHandlerIT->I2Cx->DR = i2cHandlerIT->dataToSend[i2cHandlerIT->bytesSent];
+		i2cHandlerIT->bytesSent++;
 		i2cHandlerIT->msgSize -= 1;
+
 		/*Si ultimo byte enviado --> STOP Condition*/
 		if(i2cHandlerIT->msgSize <= 0){
 			i2cHandlerIT->I2Cx->CR1 |= I2C_CR1_STOP;
@@ -124,10 +128,11 @@ void I2C_EV_IRQHandler(I2C_HandlerIT *i2cHandlerIT){
 	}
 
 
-	/*CHECK IF RxNE and BUSY are SET*/
+	/*CHECK IF RxNE are SET*/
 	if(I2C_IT_RXNE & sr){
 		i2cHandlerIT->dataReceived[i2cHandlerIT->bytesReceived] = I2C1->DR;
 		i2cHandlerIT->bytesReceived ++;
+
 	}
 
 	/*STOP detected*/
@@ -141,3 +146,4 @@ void I2C_EV_IRQHandler(I2C_HandlerIT *i2cHandlerIT){
 
 
 }
+

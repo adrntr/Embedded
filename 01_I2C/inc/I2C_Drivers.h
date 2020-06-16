@@ -10,6 +10,11 @@
 #define MODE_MASTER 0
 #define MODE_SLAVE 	1
 
+/*@I2C_W/R*/
+#define I2C_TXMODE_WRITE 	0
+#define I2C_TXMODE_READ 	1
+
+
 #define STOP 1
 
 uint8_t ownAddress;
@@ -20,8 +25,9 @@ typedef struct
 {
 	I2C_TypeDef* I2Cx;
 	uint8_t receiverAddress;
-	uint8_t writeRead;
+	uint8_t writeRead;				/*@I2C_W/R*/
 	char dataToSend[32];
+	uint32_t bytesSent;
 	uint32_t msgSize;
 	char dataReceived[32];          /*!< Where to save the I2C data */
 	uint32_t bytesReceived; 		/*!< Number of bytes received at the moment */
@@ -40,6 +46,7 @@ void I2C_EnableIT();
 void I2C_EV_IRQHandler(I2C_HandlerIT *i2cHandlerIT);
 
 void I2C_EventCallBack(uint8_t event);
+
 
 
 
