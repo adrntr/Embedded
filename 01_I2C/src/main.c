@@ -109,11 +109,21 @@ void I2C_EventCallBack(uint8_t event){
 		printmsg("Transfer finished. Data = ");
 		printmsg(i2cHandler.dataReceived);
 
+		printmsg("\r\n");
+
 		memset(i2cHandler.dataReceived,0,sizeof(i2cHandler.dataReceived));
 		i2cHandler.bytesReceived = 0;
 		i2cHandler.bytesSent = 0;
 		i2cHandler.mode = MODE_SLAVE;
+		i2cHandler.status = FREE;
 		break;
+
+	case TRANSFER_FINISHED:
+		printmsg("[MASTER] Transfer finished\r\n");
+		i2cHandler.bytesSent = 0;
+		i2cHandler.mode = MODE_SLAVE;
+		i2cHandler.msgSize = strlen(i2cHandler.dataToSend);
+		i2cHandler.status = FREE;
 
 	}
 
@@ -328,7 +338,7 @@ void I2C_Config(){
 void I2C_HandlerConfig(){
 
 	i2cHandler.I2Cx = I2C1;
-	strcpy(i2cHandler.dataToSend,"Xq\r\n");
+	strcpy(i2cHandler.dataToSend,"\n\rABCDEFghijk\r\n");
 	i2cHandler.bytesSent = 0;
 	i2cHandler.mode = MODE_SLAVE;
 	i2cHandler.msgSize = strlen(i2cHandler.dataToSend);
@@ -413,8 +423,13 @@ void EXTI15_10_IRQHandler(){
 	if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_13)==0){
 		printmsg("Sending\r\n");
 		i2cHandler.mode = MODE_MASTER;
-		I2C_Send1char("ho\r\n"); //polling mode
-		//I2C1->CR1 |= I2C_CR1_START;
+		//I2C_Send1char("ho\r\n"); //polling mode
+		if(i2cHandler.status!=BUSY){
+			I2C1->CR1 |= I2C_CR1_START;
+		}else{
+			printmsg("OCUPADOOOOO\r\n");
+		}
+
 	}
 
 

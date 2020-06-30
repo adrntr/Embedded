@@ -14,8 +14,13 @@
 #define I2C_TXMODE_WRITE 	0
 #define I2C_TXMODE_READ 	1
 
+/*@I2C_STATUS*/
+#define FREE	0
+#define BUSY 	1
 
+/*Callbacks*/
 #define STOP 1
+#define TRANSFER_FINISHED 2
 
 uint8_t ownAddress;
 uint8_t device2Address;
@@ -33,6 +38,7 @@ typedef struct
 	uint32_t bytesReceived; 		/*!< Number of bytes received at the moment */
 
 	uint8_t mode; 					/*@I2C_MODE*/
+	uint8_t status;					/*@I2C_STATUS*/
 
 }I2C_HandlerIT;
 
