@@ -285,7 +285,7 @@ void RCC_Config(){
 void I2C_Config(){
 
 	/*RCC ENABLES*/
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB,ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1,ENABLE);
 
 	/*GPIOS ALTERNATE FUNC CONFIG - SCL*/
