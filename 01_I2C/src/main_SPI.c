@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "stm32f4xx.h"
+#include "spi_ownLib.h"
 
 USART_InitTypeDef USART_InitStruct;
 GPIO_InitTypeDef GPIO_InitStruct;
@@ -23,6 +24,12 @@ void printmsg(char *msg);
 int main(){
 
 	Uart_Config();
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+
+	SPI_GpioConfig();
+	SPI_Config();
+	SPI_MasterSendData();
 
 	return 0;
 }
