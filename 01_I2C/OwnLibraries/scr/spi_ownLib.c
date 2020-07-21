@@ -5,43 +5,49 @@
 void SPI_GpioConfig(){
 
 	/*RCC ENABLES*/
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB,ENABLE);
+
 
 	/*GPIOS ALTERNATE FUNC CONFIG - SCL*/
 	GPIO_StructInit(&GPIO_InitStruct);
 
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStruct.GPIO_Speed = GPIO_High_Speed;
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_5;
+	GPIO_InitStruct.GPIO_Speed = GPIO_Fast_Speed;
 
-	GPIO_Init(GPIOA,&GPIO_InitStruct);		//SCK
-
-
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_6; //MISO
-	GPIO_Init(GPIOA,&GPIO_InitStruct);
-
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_7; //MOSI
-	GPIO_Init(GPIOA,&GPIO_InitStruct);
-
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_4; // NSS
-	GPIO_Init(GPIOA,&GPIO_InitStruct);
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_15; //MOSI
+	GPIO_Init(GPIOB,&GPIO_InitStruct);
 
 
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource4, GPIO_AF_SPI1);	//NSS
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_SPI1);	//SCK
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_SPI1);	//MISO
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_SPI1);	//MOSI
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_13;
+	GPIO_Init(GPIOB,&GPIO_InitStruct);		//SCK
+
+
+	//GPIO_InitStruct.GPIO_Pin = GPIO_Pin_14; //MISO
+	//GPIO_Init(GPIOB,&GPIO_InitStruct);
+
+
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_12; // NSS
+	GPIO_Init(GPIOB,&GPIO_InitStruct);
+
+
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_SPI2);	//NSS
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_SPI2);	//SCK
+	//GPIO_PinAFConfig(GPIOB, GPIO_PinSource14, GPIO_AF_SPI2);	//MISO
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource15, GPIO_AF_SPI2);	//MOSI
+
+
 
 }
 //857
 void SPI_Config(){
 
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
 	//CR1
 	uint16_t SPI_CR1_Aux = 0;
 	//1. Configure the serial clock baud rate using BR[2:0]
-	SPI_CR1_Aux &= ~((0x7) << SPI_CR1_BR_OWN); 		//BR = 000 --> fclk/2
+	SPI_CR1_Aux |= ((0x2) << SPI_CR1_BR_OWN); 		//BR = 010 --> fclk/8
 
 	//2. Configure the CPOL and CPHA bits combination to define one of the four
 	//relationships between the data transfer and the serial clock
@@ -59,8 +65,8 @@ void SPI_Config(){
 	//is at idle state). --> STAY IN 0. DON'T DO NOTHING.
 
 	//Configure SSM and SSI
-	SPI_CR1_Aux |= ((0x3) << SPI_CR1_SSI_OWN); 		//When the SSM bit is set, the NSS pin input is replaced with the value from the SSI bit.
-													//SSM = 1 , SSI = 1
+	SPI_CR1_Aux &= ~ ((0x1) << SPI_CR1_SSM_OWN); 	//When the SSM bit is set, the NSS pin input is replaced with the value from the SSI bit.
+													//SSM = 1 --> for hardware management make SSM to 0
 
 	//Configure MSTR: Master selection (0-> SLAVE , 1->MASTER)
 	SPI_CR1_Aux |= ((0x1) << SPI_CR1_MSTR_OWM); 		//MSTR = 1 -> MASTER
@@ -69,32 +75,35 @@ void SPI_Config(){
 
 	//COPY AUX INTO CR1 REGISTER
 
-	SPI1->CR1 = SPI_CR1_Aux;
+	SPI2->CR1 = SPI_CR1_Aux;
 
 	//CR2
 	//1. SSOE: SS output enable
-	SPI1->CR2 |= (0x1 << SPI_CR2_SSOE_OWN);
+	SPI2->CR2 |= (0x1 << SPI_CR2_SSOE_OWN);
 
 }
 
 void SPI_MasterSendData(){
+	uint8_t Data = 'H';
+	uint8_t* pData = &Data;
 	//1. Enable SPI
-	SPI1->CR1 |= (0x1 << SPI_CR1_SPE_OWN);
+	SPI2->CR1 |= (0x1 << SPI_CR1_SPE_OWN);
 
 	//2. Check TXE flag
-	while(!((SPI1->SR) & (1<<SPI_SR_TXE_OWN)));
+	while(!((SPI2->SR) & (1<<SPI_SR_TXE_OWN)));
 
 	//3. Write data into DR register
-	SPI1->DR = 0x44;
+	SPI2->DR = *pData;
+
 
 	//4. Disable SPI
 	//4.1 Wait until RXNE = 1 to receive the last data
-	while(!((SPI1->SR) & (1<<SPI_SR_RXNE_OWN)));
+	//while(!((SPI2->SR) & (1<<SPI_SR_RXNE_OWN)));
 	//4.2 Wait until TXE = 1
-	while(!((SPI1->SR) & (1<<SPI_SR_TXE_OWN)));
+	while(!((SPI2->SR) & (1<<SPI_SR_TXE_OWN)));
 	//4.3 Wait until BSY = 0
-	while((SPI1->SR) & (1<<SPI_SR_BSY_OWN));
+	while((SPI2->SR) & (1<<SPI_SR_BSY_OWN));
 	//4.4 Disable SPI
-	SPI1->CR1 &= ~ (0x1 << SPI_CR1_SPE_OWN);
+	SPI2->CR1 &= ~ (0x1 << SPI_CR1_SPE_OWN);
 
 }

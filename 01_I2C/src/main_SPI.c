@@ -16,6 +16,11 @@ GPIO_InitTypeDef GPIO_InitStruct;
 
 void Uart_Config();
 void printmsg(char *msg);
+void ButtonLed_Config();
+
+void delay(void){
+	for ( uint32_t i=0;i<200000;i++);
+}
 
 /***********************************************************************************************
 										MAIN
@@ -23,15 +28,49 @@ void printmsg(char *msg);
 
 int main(){
 
-	Uart_Config();
+	//Uart_Config();
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+	ButtonLed_Config();
+
 
 	SPI_GpioConfig();
+
 	SPI_Config();
-	SPI_MasterSendData();
+
+	while(1){
+		while(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_13));
+
+		delay();
+
+		SPI_MasterSendData();
+
+		delay();
+
+	}
+
+
 
 	return 0;
+}
+
+/***********************************************************************************************
+								BUTTON AND LED CONFIG
+***********************************************************************************************/
+
+void ButtonLed_Config(){
+
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+		//RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+
+		/*BUTTON*/
+		GPIO_StructInit(&GPIO_InitStruct);
+
+		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
+		GPIO_InitStruct.GPIO_Pin = GPIO_Pin_13;
+		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
+
+		GPIO_Init(GPIOC,&GPIO_InitStruct);
+
 }
 
 /***********************************************************************************************

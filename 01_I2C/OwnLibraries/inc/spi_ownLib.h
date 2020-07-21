@@ -30,3 +30,12 @@ GPIO_InitTypeDef GPIO_InitStruct;
 void SPI_GpioConfig();
 void SPI_Config();
 void SPI_MasterSendData();
+
+
+typedef struct SPI_Handler{
+
+	uint8_t length;
+
+	uint8_t data[32];
+
+}SPI_HandlerDef;
