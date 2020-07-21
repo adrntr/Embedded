@@ -14,9 +14,13 @@
 USART_InitTypeDef USART_InitStruct;
 GPIO_InitTypeDef GPIO_InitStruct;
 
+SPI_HandlerDef SPI_Handler;
+
 void Uart_Config();
 void printmsg(char *msg);
 void ButtonLed_Config();
+
+
 
 void delay(void){
 	for ( uint32_t i=0;i<200000;i++);
@@ -28,27 +32,44 @@ void delay(void){
 
 int main(){
 
-	//Uart_Config();
+	Uart_Config();
 
 	ButtonLed_Config();
-
 
 	SPI_GpioConfig();
 
 	SPI_Config();
+
+#ifdef Master
+	printmsg("SOY EL MASTER Y LA TENGO RE GRANDE \n\r");
+
+	memcpy(SPI_Handler.data,"Hello world",strlen("Hello world"));
+
+	SPI_Handler.length = strlen(SPI_Handler.data);
 
 	while(1){
 		while(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_13));
 
 		delay();
 
-		SPI_MasterSendData();
+		SPI_MasterSendData(&SPI_Handler);
 
 		delay();
+	}
+
+#else
+
+	printmsg("SOY EL ESCLAVO Y LA TENGO RE CHICA \n\r");
+
+	while(1){
+
+		SPI_SlaveReceiveData(&SPI_Handler);
+
+		printmsg(SPI_Handler.data);
 
 	}
 
-
+#endif
 
 	return 0;
 }
@@ -90,8 +111,6 @@ void Uart_Config(){
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
 
 	GPIO_Init(GPIOA,&GPIO_InitStruct );
-
-
 
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_USART2);
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_USART2);

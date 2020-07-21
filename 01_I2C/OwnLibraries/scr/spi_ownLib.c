@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+
 void SPI_GpioConfig(){
 
 	/*RCC ENABLES*/
@@ -68,8 +70,12 @@ void SPI_Config(){
 	SPI_CR1_Aux &= ~ ((0x1) << SPI_CR1_SSM_OWN); 	//When the SSM bit is set, the NSS pin input is replaced with the value from the SSI bit.
 													//SSM = 1 --> for hardware management make SSM to 0
 
+#ifdef Master
 	//Configure MSTR: Master selection (0-> SLAVE , 1->MASTER)
 	SPI_CR1_Aux |= ((0x1) << SPI_CR1_MSTR_OWM); 		//MSTR = 1 -> MASTER
+#else
+	SPI_CR1_Aux &= ~((0x1) << SPI_CR1_MSTR_OWM); 		//MSTR = 0 -> SLAVE
+#endif
 
 	//Set the DFF bit to configure the data frame format (8 or 16 bits). --> STAY IN 0. DON'T DO NOTHING.
 
@@ -77,23 +83,70 @@ void SPI_Config(){
 
 	SPI2->CR1 = SPI_CR1_Aux;
 
+#ifdef Master
 	//CR2
 	//1. SSOE: SS output enable
 	SPI2->CR2 |= (0x1 << SPI_CR2_SSOE_OWN);
 
+#endif
 }
 
-void SPI_MasterSendData(){
-	uint8_t Data = 'H';
-	uint8_t* pData = &Data;
+void SPI_MasterSendData(SPI_HandlerDef *SPI2_Handler){
+
+
 	//1. Enable SPI
 	SPI2->CR1 |= (0x1 << SPI_CR1_SPE_OWN);
 
 	//2. Check TXE flag
 	while(!((SPI2->SR) & (1<<SPI_SR_TXE_OWN)));
 
-	//3. Write data into DR register
-	SPI2->DR = *pData;
+	//3. Write data into DR register --> LENGHT
+	SPI2->DR = SPI2_Handler->length;
+
+	//3.2 Wait until TXE = 1
+	while(!((SPI2->SR) & (1<<SPI_SR_TXE_OWN)));
+
+	//3.3 Write the hole data in SPI
+	for(int i=0;i<SPI2_Handler->length;i++){
+		SPI2->DR = SPI2_Handler->data[i];
+		while(!((SPI2->SR) & (1<<SPI_SR_TXE_OWN)));
+	}
+
+
+
+	//4. Disable SPI
+	//4.1 Wait until RXNE = 1 to receive the last data
+	//while(!((SPI2->SR) & (1<<SPI_SR_RXNE_OWN)));
+	//4.2 Wait until TXE = 1
+	while(!((SPI2->SR) & (1<<SPI_SR_TXE_OWN)));
+	//4.3 Wait until BSY = 0
+	while((SPI2->SR) & (1<<SPI_SR_BSY_OWN));
+	//4.4 Disable SPI
+	SPI2->CR1 &= ~ (0x1 << SPI_CR1_SPE_OWN);
+
+}
+
+void SPI_SlaveReceiveData(SPI_HandlerDef *SPI2_Handler){
+
+
+	//1. Enable SPI
+	SPI2->CR1 |= (0x1 << SPI_CR1_SPE_OWN);
+
+	//2. Check RNXE flag
+	while(!((SPI2->SR) & (1<<SPI_SR_RXNE_OWN)));
+
+	//3. Write data into DR register --> LENGHT
+	SPI2_Handler->length = SPI2->DR;
+
+	//3.2 Check RNXE flag
+	while(!((SPI2->SR) & (1<<SPI_SR_RXNE_OWN)));
+
+	//3.3 Read the hole data in SPI
+	for(int i=0;i<SPI2_Handler->length;i++){
+		SPI2_Handler->data[i] = SPI2->DR;
+		while(!((SPI2->SR) & (1<<SPI_SR_RXNE_OWN)));
+	}
+
 
 
 	//4. Disable SPI
