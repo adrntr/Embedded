@@ -22,7 +22,7 @@ GPIO_InitTypeDef GPIO_InitStruct;
 #define SPI_SR_TXE_OWN			1
 #define SPI_SR_BSY_OWN			7
 
-//#define Master
+#define Master
 #define Slave
 
 

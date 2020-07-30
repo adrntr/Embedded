@@ -11,6 +11,11 @@
 #include "stm32f4xx.h"
 #include "spi_ownLib.h"
 
+#define SUM 1
+#define SUB 2
+#define MUL 3
+
+
 USART_InitTypeDef USART_InitStruct;
 GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -20,7 +25,16 @@ void Uart_Config();
 void printmsg(char *msg);
 void ButtonLed_Config();
 
+char data[200];
+char handlerdata[32];
 
+typedef struct operation{
+	char num_one;
+	char num_two;
+	char operation;
+}OperationStruct;
+
+void printmsg(char* msg);
 
 void delay(void){
 	for ( uint32_t i=0;i<200000;i++);
@@ -41,7 +55,19 @@ int main(){
 	SPI_Config();
 
 #ifdef Master
-	printmsg("SOY EL MASTER Y LA TENGO RE GRANDE \n\r");
+	OperationStruct oper;
+
+
+	printmsg("/********/\nMASTER\n/********/ \n\r");
+	printmsg("Select operation:\n\r"
+			"1. sum\n\r"
+			"2. substract\n\r"
+			"3. Multiply\n\r");
+	oper.operation = getchar();
+	printmsg("Insert number 1: ");
+	oper.num_one = getchar();
+	printmsg("Insert number 2: ");
+	scanf("%c",&oper.num_two);
 
 	memcpy(SPI_Handler.data,"Hello world",strlen("Hello world"));
 
@@ -66,6 +92,7 @@ int main(){
 		SPI_SlaveReceiveData(&SPI_Handler);
 
 		printmsg(SPI_Handler.data);
+		printmsg("\n\r");
 
 	}
 
@@ -125,7 +152,7 @@ void Uart_Config(){
 
 	USART_Cmd(USART2, ENABLE);
 
-	printmsg("UART CONFIGURED \r\n");
+	//printmsg("UART CONFIGURED \r\n");
 }
 
 /***********************************************************************************************

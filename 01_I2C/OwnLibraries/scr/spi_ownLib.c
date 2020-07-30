@@ -135,23 +135,21 @@ void SPI_SlaveReceiveData(SPI_HandlerDef *SPI2_Handler){
 	//2. Check RNXE flag
 	while(!((SPI2->SR) & (1<<SPI_SR_RXNE_OWN)));
 
-	//3. Write data into DR register --> LENGHT
+	//3. Read data from DR register --> LENGHT
 	SPI2_Handler->length = SPI2->DR;
 
-	//3.2 Check RNXE flag
-	while(!((SPI2->SR) & (1<<SPI_SR_RXNE_OWN)));
+
 
 	//3.3 Read the hole data in SPI
 	for(int i=0;i<SPI2_Handler->length;i++){
-		SPI2_Handler->data[i] = SPI2->DR;
 		while(!((SPI2->SR) & (1<<SPI_SR_RXNE_OWN)));
+		SPI2_Handler->data[i] = SPI2->DR;
 	}
 
 
 
 	//4. Disable SPI
-	//4.1 Wait until RXNE = 1 to receive the last data
-	//while(!((SPI2->SR) & (1<<SPI_SR_RXNE_OWN)));
+
 	//4.2 Wait until TXE = 1
 	while(!((SPI2->SR) & (1<<SPI_SR_TXE_OWN)));
 	//4.3 Wait until BSY = 0
